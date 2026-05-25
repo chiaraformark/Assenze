@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Assenze</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F5F3EE;
+    --surface: #FFFFFF;
+    --border: #E2DED6;
+    --border-strong: #C8C3BA;
+    --text: #1A1814;
+    --text-muted: #7A756C;
+    --accent: #2D2A26;
+    --tag-bg: #EDE9E3;
+    --tag-text: #4A4640;
+    --today-border: #1A1814;
+    --red: #C0392B;
+    --red-light: #FAEDEB;
+  }
+
+  body {
+    background: var(--bg);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2.5rem 1.5rem;
+  }
+
+  .wrapper {
+    max-width: 820px;
+    margin: 0 auto;
+  }
+
+  header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 2.5rem;
+    border-bottom: 1px solid var(--border-strong);
+    padding-bottom: 1rem;
+  }
+
+  .site-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .month-nav {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+  }
+
+  .month-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    min-width: 160px;
+    text-align: center;
+  }
+
+  .nav-btn {
+    background: none;
+    border: 1px solid var(--border-strong);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    color: var(--text);
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, border-color 0.15s;
+    line-height: 1;
+  }
+
+  .nav-btn:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  .day-labels {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+    margin-bottom: 3px;
+  }
+
+  .day-label {
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 6px 0;
+  }
+
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+  }
+
+  .day-cell {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    min-height: 90px;
+    padding: 8px;
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    position: relative;
+  }
+
+  .day-cell:hover {
+    border-color: var(--border-strong);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+
+  .day-cell.empty {
+    background: transparent;
+    border-color: transparent;
+    cursor: default;
+    box-shadow: none;
+  }
+
+  .day-cell.today {
+    border-color: var(--today-border);
+    border-width: 1.5px;
+  }
+
+  .day-number {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  .day-cell.today .day-number {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .absence-tag {
+    font-size: 11px;
+    background: var(--tag-bg);
+    color: var(--tag-text);
+    border-radius: 3px;
+    padding: 3px 6px;
+    margin-bottom: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    line-height: 1.3;
+  }
+
+  .absence-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .del-btn {
+    cursor: pointer;
+    opacity: 0.4;
+    font-size: 12px;
+    flex-shrink: 0;
+    line-height: 1;
+    padding: 0 2px;
+  }
+
+  .del-btn:hover { opacity: 1; color: var(--red); }
+
+  /* Modal */
+  .modal-bg {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(26, 24, 20, 0.45);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-bg.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border-radius: 10px;
+    border: 1px solid var(--border-strong);
+    padding: 1.75rem;
+    width: 340px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  }
+
+  .modal-date {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 1.25rem;
+  }
+
+  .modal input {
+    width: 100%;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    padding: 9px 12px;
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    margin-bottom: 10px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .modal input:focus { border-color: var(--accent); }
+  .modal input::placeholder { color: var(--text-muted); }
+
+  .modal-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 1rem;
+  }
+
+  .btn-cancel {
+    background: none;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text-muted);
+    transition: background 0.15s;
+  }
+
+  .btn-cancel:hover { background: var(--bg); }
+
+  .btn-add {
+    background: var(--accent);
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    color: #fff;
+    transition: opacity 0.15s;
+  }
+
+  .btn-add:hover { opacity: 0.85; }
+
+  .hint {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 1.5rem;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.03em;
+  }
+
+  @media (max-width: 600px) {
+    body { padding: 1.25rem 0.75rem; }
+    .day-cell { min-height: 64px; padding: 5px; }
+    .absence-tag { font-size: 10px; padding: 2px 4px; }
+    .day-number { font-size: 11px; }
+    header { flex-direction: column; gap: 1rem; }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <header>
+    <span class="site-title">Assenze</span>
+    <div class="month-nav">
+      <button class="nav-btn" id="prev">&#8592;</button>
+      <span class="month-label" id="month-label"></span>
+      <button class="nav-btn" id="next">&#8594;</button>
+    </div>
+  </header>
+
+  <div class="day-labels" id="day-labels"></div>
+  <div class="cal-grid" id="cal-grid"></div>
+  <p class="hint">Clicca su un giorno per aggiungere un'assenza.</p>
+</div>
+
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <p class="modal-date" id="modal-date"></p>
+    <input type="text" id="name-input" placeholder="Nome" autocomplete="off" maxlength="40" />
+    <input type="text" id="note-input" placeholder="Nota (opzionale)" autocomplete="off" maxlength="60" />
+    <div class="modal-actions">
+      <button class="btn-cancel" id="btn-cancel">Annulla</button>
+      <button class="btn-add" id="btn-confirm">Aggiungi</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DAYS = ['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];
+const MONTHS = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+
+const today = new Date();
+let curYear = today.getFullYear();
+let curMonth = today.getMonth();
+let absences = {};
+let selectedDay = null;
+
+function storageKey(y, m) { return `assenze_${y}_${m}`; }
+
+function load() {
+  const raw = localStorage.getItem(storageKey(curYear, curMonth));
+  absences = raw ? JSON.parse(raw) : {};
+  render();
+}
+
+function save() {
+  localStorage.setItem(storageKey(curYear, curMonth), JSON.stringify(absences));
+}
+
+function render() {
+  document.getElementById('month-label').textContent = `${MONTHS[curMonth]} ${curYear}`;
+
+  const labels = document.getElementById('day-labels');
+  labels.innerHTML = '';
+  DAYS.forEach(d => {
+    const el = document.createElement('div');
+    el.className = 'day-label';
+    el.textContent = d;
+    labels.appendChild(el);
+  });
+
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = '';
+
+  const firstDay = new Date(curYear, curMonth, 1).getDay();
+  const offset = firstDay === 0 ? 6 : firstDay - 1;
+  const daysInMonth = new Date(curYear, curMonth + 1, 0).getDate();
+
+  for (let i = 0; i < offset; i++) {
+    const el = document.createElement('div');
+    el.className = 'day-cell empty';
+    grid.appendChild(el);
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const cell = document.createElement('div');
+    cell.className = 'day-cell';
+    const isToday = d === today.getDate() && curMonth === today.getMonth() && curYear === today.getFullYear();
+    if (isToday) cell.classList.add('today');
+
+    const num = document.createElement('span');
+    num.className = 'day-number';
+    num.textContent = d;
+    cell.appendChild(num);
+
+    const key = `${curYear}-${curMonth}-${d}`;
+    (absences[key] || []).forEach((ab, idx) => {
+      const tag = document.createElement('div');
+      tag.className = 'absence-tag';
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'absence-name';
+      nameSpan.textContent = ab.note ? `${ab.name} · ${ab.note}` : ab.name;
+      nameSpan.title = nameSpan.textContent;
+      const del = document.createElement('span');
+      del.className = 'del-btn';
+      del.textContent = '×';
+      del.dataset.key = key;
+      del.dataset.idx = idx;
+      del.title = 'Rimuovi';
+      tag.appendChild(nameSpan);
+      tag.appendChild(del);
+      cell.appendChild(tag);
+    });
+
+    cell.addEventListener('click', (e) => {
+      if (e.target.classList.contains('del-btn')) {
+        const k = e.target.dataset.key;
+        const i = parseInt(e.target.dataset.idx);
+        absences[k].splice(i, 1);
+        if (!absences[k].length) delete absences[k];
+        save(); render(); return;
+      }
+      openModal(d);
+    });
+
+    grid.appendChild(cell);
+  }
+}
+
+function openModal(day) {
+  selectedDay = day;
+  document.getElementById('modal-date').textContent = `${day} ${MONTHS[curMonth]} ${curYear}`;
+  document.getElementById('name-input').value = '';
+  document.getElementById('note-input').value = '';
+  document.getElementById('modal-bg').classList.add('open');
+  setTimeout(() => document.getElementById('name-input').focus(), 50);
+}
+
+function closeModal() {
+  document.getElementById('modal-bg').classList.remove('open');
+  selectedDay = null;
+}
+
+document.getElementById('btn-cancel').addEventListener('click', closeModal);
+document.getElementById('modal-bg').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+
+document.getElementById('btn-confirm').addEventListener('click', () => {
+  const name = document.getElementById('name-input').value.trim();
+  if (!name) return;
+  const note = document.getElementById('note-input').value.trim();
+  const key = `${curYear}-${curMonth}-${selectedDay}`;
+  if (!absences[key]) absences[key] = [];
+  absences[key].push({ name, note });
+  save(); render(); closeModal();
+});
+
+['name-input','note-input'].forEach(id => {
+  document.getElementById(id).addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('btn-confirm').click();
+  });
+});
+
+document.getElementById('prev').addEventListener('click', () => {
+  curMonth--; if (curMonth < 0) { curMonth = 11; curYear--; } load();
+});
+document.getElementById('next').addEventListener('click', () => {
+  curMonth++; if (curMonth > 11) { curMonth = 0; curYear++; } load();
+});
+
+load();
+</script>
+</body>
+</html>
