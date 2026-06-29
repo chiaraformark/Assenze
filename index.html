@@ -24,7 +24,7 @@
   .day-labels { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; margin-bottom: 3px; }
   .day-label { text-align: center; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); padding: 6px 0; }
   .cal-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; }
-  .day-cell { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; height: 120px; padding: 8px; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; display: flex; flex-direction: column; overflow: hidden; }
+  .day-cell { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; height: 165px; padding: 8px; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; display: flex; flex-direction: column; overflow: hidden; }
   .day-cell:hover { border-color: var(--border-strong); box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
   .day-cell.empty { background: transparent; border-color: transparent; cursor: default; box-shadow: none; }
   .day-cell.today { border-color: var(--text); border-width: 1.5px; }
@@ -51,7 +51,7 @@
   .status { font-size: 11px; color: var(--text-muted); margin-top: 0.5rem; font-family: 'DM Mono', monospace; min-height: 16px; }
   @media (max-width: 600px) {
     body { padding: 1.25rem 0.75rem; }
-    .day-cell { height: 88px; padding: 5px; }
+    .day-cell { height: 120px; padding: 5px; }
     .absence-tag { font-size: 10px; }
     .day-number { font-size: 11px; }
   }
