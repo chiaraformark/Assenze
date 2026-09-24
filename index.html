@@ -11,7 +11,7 @@
   :root {
     --bg: #F5F3EE; --surface: #FFFFFF; --border: #E2DED6; --border-strong: #C8C3BA;
     --text: #1A1814; --text-muted: #7A756C; --accent: #2D2A26;
-    --tag-bg: #EDE9E3; --tag-text: #4A4640;
+    --tag-bg: #EDE9E3; --tag-text: #4A4640; --danger: #B03A2E;
   }
   body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--text); min-height: 100vh; padding: 2.5rem 1.5rem; }
   .wrapper { max-width: 680px; margin: 0 auto; }
@@ -28,40 +28,58 @@
   .day-cell:hover { border-color: var(--border-strong); box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
   .day-cell.empty { background: transparent; border-color: transparent; cursor: default; box-shadow: none; }
   .day-cell.today { border-color: var(--text); border-width: 1.5px; }
-  .day-number { font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 500; color: var(--text-muted); margin-bottom: 6px; display: block; flex-shrink: 0; }
-  .day-cell.today .day-number { color: var(--text); }
+  .day-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; flex-shrink: 0; }
+  .day-number { font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 500; color: var(--text-muted); }
+  .day-weekday { display: none; font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+  .day-add { display: none; margin-left: auto; font-size: 20px; line-height: 1; color: var(--text-muted); }
+  .day-cell.today .day-number, .day-cell.today .day-weekday { color: var(--text); }
   .day-absences { flex: 1; min-height: 0; overflow-y: auto; }
   .day-absences::-webkit-scrollbar { width: 4px; }
   .day-absences::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
-  .absence-tag { font-size: 11px; background: var(--tag-bg); color: var(--tag-text); border-radius: 3px; padding: 3px 6px; margin-bottom: 3px; display: flex; align-items: center; gap: 4px; line-height: 1.3; cursor: pointer; transition: background 0.1s; }
+  .absence-tag { font-size: 11px; background: var(--tag-bg); color: var(--tag-text); border-radius: 3px; padding: 3px 6px; margin-bottom: 3px; line-height: 1.3; cursor: pointer; transition: background 0.1s; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .absence-tag:hover { background: #dfd9ce; }
-  .absence-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
-  .del-btn { cursor: pointer; opacity: 0.4; font-size: 12px; flex-shrink: 0; padding: 0 2px; }
-  .del-btn:hover { opacity: 1; color: #C0392B; }
-  
-  .modal-bg { display: none; position: fixed; inset: 0; background: rgba(26,24,20,0.45); z-index: 100; align-items: center; justify-content: center; }
+
+  .modal-bg { display: none; position: fixed; inset: 0; background: rgba(26,24,20,0.45); z-index: 100; align-items: center; justify-content: center; padding: 1rem; }
   .modal-bg.open { display: flex; }
-  .modal { background: var(--surface); border-radius: 10px; border: 1px solid var(--border-strong); padding: 1.75rem; width: 340px; box-shadow: 0 8px 32px rgba(0,0,0,0.12); }
+  .modal { background: var(--surface); border-radius: 10px; border: 1px solid var(--border-strong); padding: 1.75rem; width: 100%; max-width: 380px; box-shadow: 0 8px 32px rgba(0,0,0,0.12); }
   .modal-date { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 1.25rem; }
-  .modal input { width: 100%; border: 1px solid var(--border-strong); border-radius: 6px; padding: 9px 12px; font-size: 14px; font-family: 'DM Sans', sans-serif; color: var(--text); background: var(--bg); margin-bottom: 10px; outline: none; transition: border-color 0.15s; }
+  .modal input { width: 100%; border: 1px solid var(--border-strong); border-radius: 6px; padding: 10px 12px; font-size: 16px; font-family: 'DM Sans', sans-serif; color: var(--text); background: var(--bg); margin-bottom: 10px; outline: none; transition: border-color 0.15s; }
   .modal input:focus { border-color: var(--accent); }
   .modal input::placeholder { color: var(--text-muted); }
-  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 1rem; }
-  .btn-cancel { background: none; border: 1px solid var(--border-strong); border-radius: 6px; padding: 8px 16px; cursor: pointer; font-size: 13px; font-family: 'DM Sans', sans-serif; color: var(--text-muted); }
-  .btn-add { background: var(--accent); border: none; border-radius: 6px; padding: 8px 16px; cursor: pointer; font-size: 13px; font-family: 'DM Sans', sans-serif; color: #fff; }
-  
-  /* Modale Dettaglio */
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 1rem; flex-wrap: wrap; }
+  .btn-cancel, .btn-add, .btn-delete { border-radius: 6px; padding: 10px 18px; cursor: pointer; font-size: 14px; font-family: 'DM Sans', sans-serif; }
+  .btn-cancel { background: none; border: 1px solid var(--border-strong); color: var(--text-muted); }
+  .btn-add { background: var(--accent); border: none; color: #fff; }
+  .btn-delete { background: none; border: 1px solid var(--danger); color: var(--danger); margin-right: auto; }
+  .btn-delete.confirm { background: var(--danger); color: #fff; }
+
   .detail-content { font-size: 14px; margin-bottom: 1.25rem; line-height: 1.5; }
-  .detail-content p { margin-bottom: 8px; }
-  .detail-content strong { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text-muted); display: block; text-transform: uppercase; margin-bottom: 2px; }
+  .detail-content p { margin-bottom: 10px; }
+  .detail-content strong { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text-muted); display: block; text-transform: uppercase; margin-bottom: 2px; font-weight: 400; }
 
   .hint { font-size: 11px; color: var(--text-muted); margin-top: 1rem; font-family: 'DM Mono', monospace; letter-spacing: 0.03em; }
   .status { font-size: 11px; color: var(--text-muted); margin-top: 0.5rem; font-family: 'DM Mono', monospace; min-height: 16px; }
+
+  /* Telefono: vista a lista, un giorno per riga */
   @media (max-width: 600px) {
-    body { padding: 1.25rem 0.75rem; }
-    .day-cell { height: 150px; padding: 5px; }
-    .absence-tag { font-size: 10px; }
-    .day-number { font-size: 11px; }
+    body { padding: 1.25rem 1rem; }
+    header { margin-bottom: 1.5rem; }
+    .site-title { font-size: 13px; }
+    .month-label { font-size: 16px; min-width: 150px; }
+    .nav-btn { width: 40px; height: 40px; font-size: 18px; }
+    .day-labels { display: none; }
+    .cal-grid { grid-template-columns: 1fr; gap: 8px; }
+    .day-cell.empty { display: none; }
+    .day-cell { height: auto; min-height: 64px; padding: 12px 14px; }
+    .day-head { margin-bottom: 8px; }
+    .day-number { font-size: 18px; color: var(--text); }
+    .day-weekday { display: inline; font-size: 13px; }
+    .day-add { display: inline; }
+    .day-absences { overflow: visible; }
+    .absence-tag { font-size: 16px; padding: 10px 12px; margin-bottom: 6px; border-radius: 6px; white-space: normal; }
+    .hint, .status { font-size: 13px; }
+    .modal-date { font-size: 13px; }
+    .detail-content { font-size: 16px; }
   }
 </style>
 </head>
@@ -77,7 +95,7 @@
   </header>
   <div class="day-labels" id="day-labels"></div>
   <div class="cal-grid" id="cal-grid"></div>
-  <p class="hint">Clicca su un giorno vuoto per aggiungere un'assenza. Clicca su un nome per vederne i dettagli.</p>
+  <p class="hint">Tocca un giorno per aggiungere un'assenza. Tocca un nome per vederne i dettagli o eliminarlo.</p>
   <p class="status" id="status"></p>
 </div>
 
@@ -99,10 +117,11 @@
   <div class="modal">
     <p class="modal-date" id="detail-modal-date"></p>
     <div class="detail-content">
-      <p><strong>Nome</strong> <span id="detail-name" style="font-size: 16px; font-weight: 500;"></span></p>
+      <p><strong>Nome</strong> <span id="detail-name" style="font-size: 18px; font-weight: 500;"></span></p>
       <p><strong>Nota</strong> <span id="detail-note" style="color: var(--text-muted);">Nessuna nota presente</span></p>
     </div>
     <div class="modal-actions">
+      <button class="btn-delete" id="detail-btn-delete">Elimina</button>
       <button class="btn-cancel" id="detail-btn-close">Chiudi</button>
     </div>
   </div>
@@ -123,6 +142,7 @@ let curYear = today.getFullYear();
 let curMonth = today.getMonth();
 let absences = [];
 let selectedDay = null;
+let selectedAbsence = null;
 
 function setStatus(msg) { document.getElementById('status').textContent = msg; }
 
@@ -146,6 +166,11 @@ function weekdayIndex(year, month, day) {
   return dow - 1;
 }
 
+function formatDate(iso) {
+  const [y, m, d] = iso.split('-').map(Number);
+  return `${d} ${MONTHS[m-1]} ${y}`;
+}
+
 function render() {
   document.getElementById('month-label').textContent = `${MONTHS[curMonth]} ${curYear}`;
 
@@ -166,10 +191,7 @@ function render() {
   let firstWorkdayOffset = -1;
   for (let d = 1; d <= daysInMonth; d++) {
     const idx = weekdayIndex(curYear, curMonth, d);
-    if (idx !== -1) {
-      firstWorkdayOffset = idx;
-      break;
-    }
+    if (idx !== -1) { firstWorkdayOffset = idx; break; }
   }
 
   for (let i = 0; i < firstWorkdayOffset; i++) {
@@ -187,10 +209,25 @@ function render() {
     const isToday = d === today.getDate() && curMonth === today.getMonth() && curYear === today.getFullYear();
     if (isToday) cell.classList.add('today');
 
+    const head = document.createElement('div');
+    head.className = 'day-head';
+
     const num = document.createElement('span');
     num.className = 'day-number';
     num.textContent = d;
-    cell.appendChild(num);
+
+    const wd = document.createElement('span');
+    wd.className = 'day-weekday';
+    wd.textContent = DAYS[idx];
+
+    const add = document.createElement('span');
+    add.className = 'day-add';
+    add.textContent = '+';
+
+    head.appendChild(num);
+    head.appendChild(wd);
+    head.appendChild(add);
+    cell.appendChild(head);
 
     const absBox = document.createElement('div');
     absBox.className = 'day-absences';
@@ -198,42 +235,17 @@ function render() {
     getAbsencesForDay(curYear, curMonth, d).forEach(ab => {
       const tag = document.createElement('div');
       tag.className = 'absence-tag';
-      
-      const nameSpan = document.createElement('span');
-      nameSpan.className = 'absence-name';
-      nameSpan.textContent = ab.nota ? `${ab.nome} · ${ab.nota}` : ab.nome;
-      nameSpan.title = "Clicca per dettagli";
-
-      // Click sul singolo tag per aprire i dettagli
+      tag.textContent = ab.nota ? `${ab.nome} · ${ab.nota}` : ab.nome;
+      tag.title = 'Tocca per dettagli';
       tag.addEventListener('click', (e) => {
-        e.stopPropagation(); // Evita che si apra il modale di inserimento del giorno
+        e.stopPropagation();
         openDetailModal(ab);
       });
-
-      const del = document.createElement('span');
-      del.className = 'del-btn';
-      del.textContent = '×';
-      del.title = 'Rimuovi';
-      del.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        setStatus('Rimozione...');
-        const { error } = await db.from('Assenze').delete().eq('id', ab.id);
-        if (error) { setStatus('Errore: ' + error.message); return; }
-        await loadAbsences();
-      });
-
-      tag.appendChild(nameSpan);
-      tag.appendChild(del);
       absBox.appendChild(tag);
     });
 
     cell.appendChild(absBox);
-
-    // Click sullo sfondo della cella per aggiungere un'assenza
-    cell.addEventListener('click', () => {
-      openModal(d);
-    });
-
+    cell.addEventListener('click', () => openModal(d));
     grid.appendChild(cell);
   }
 }
@@ -252,8 +264,16 @@ function closeModal() {
   selectedDay = null;
 }
 
+function resetDeleteButton() {
+  const btn = document.getElementById('detail-btn-delete');
+  btn.classList.remove('confirm');
+  btn.textContent = 'Elimina';
+}
+
 function openDetailModal(ab) {
-  document.getElementById('detail-modal-date').textContent = ab.data;
+  selectedAbsence = ab;
+  resetDeleteButton();
+  document.getElementById('detail-modal-date').textContent = formatDate(ab.data);
   document.getElementById('detail-name').textContent = ab.nome;
   document.getElementById('detail-note').textContent = ab.nota ? ab.nota : 'Nessuna nota presente';
   document.getElementById('detail-modal-bg').classList.add('open');
@@ -261,7 +281,26 @@ function openDetailModal(ab) {
 
 function closeDetailModal() {
   document.getElementById('detail-modal-bg').classList.remove('open');
+  selectedAbsence = null;
+  resetDeleteButton();
 }
+
+// Eliminazione in due tocchi: il primo chiede conferma, il secondo elimina
+document.getElementById('detail-btn-delete').addEventListener('click', async (e) => {
+  const btn = e.currentTarget;
+  if (!selectedAbsence) return;
+  if (!btn.classList.contains('confirm')) {
+    btn.classList.add('confirm');
+    btn.textContent = 'Conferma eliminazione';
+    return;
+  }
+  const id = selectedAbsence.id;
+  closeDetailModal();
+  setStatus('Rimozione...');
+  const { error } = await db.from('Assenze').delete().eq('id', id);
+  if (error) { setStatus('Errore: ' + error.message); return; }
+  await loadAbsences();
+});
 
 document.getElementById('btn-cancel').addEventListener('click', closeModal);
 document.getElementById('modal-bg').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
